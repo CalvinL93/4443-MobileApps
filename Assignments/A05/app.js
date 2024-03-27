@@ -1,20 +1,20 @@
-import React from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, View } from 'react-native';
 
-const Homepage = () => {
+export default function App() {
   return (
-    <div className="homepage-container">
-      <img
-        className="homepage-image"
-        src="your_image_url_here"
-        alt="Homepage"
-      />
-      <div className="button-container">
-        <button className="homepage-button">Sign Up</button>
-        <button className="homepage-button">Home</button>
-        <button className="homepage-button">Log In</button>
-      </div>
-    </div>
+    <View style={styles.container}>
+      <Text>Open up App.js to start working on your app!</Text>
+      <StatusBar style="auto" />
+    </View>
   );
-};
+}
 
-export default Homepage;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
