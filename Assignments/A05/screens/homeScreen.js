@@ -3,8 +3,9 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Animated, Easing, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import BottomBar from '../bottomMenu'; // Import the BottomBar component
 
-export default function App() {
+export default function HomePage({ navigation }) {
   const spinValue = useMemo(() => new Animated.Value(0), []);
 
   useEffect(() => {
@@ -31,10 +32,18 @@ export default function App() {
     outputRange: ['0deg', '360deg'],
   });
 
+  const handleSignUp = () => {
+    navigation.navigate('Registration'); // Navigate to the Registration screen
+  };
+
+  const handleLogin = () => {
+    navigation.navigate('Login');
+  }
+
   return (
     <View style={styles.container}>
       <Animated.Image
-        source={require('./assets/spinner.png')}
+        source={require('../assets/spinner.png')}
         style={[styles.image, { transform: [{ rotate: spin }] }]}
       />
 
@@ -44,16 +53,18 @@ export default function App() {
           <Text style={styles.buttonText}>Home</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleSignUp}>
           <Ionicons name="person-add" size={32} color="black" />
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Ionicons name="log-in" size={32} color="black" />
           <Text style={styles.buttonText}>Log In</Text>
         </TouchableOpacity>
       </View>
+
+      <BottomBar />
 
       <StatusBar style="auto" />
     </View>
@@ -88,5 +99,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     marginTop: 5,
+    textAlign: 'center', // Add textAlign to center the text
   },
 });
