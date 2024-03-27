@@ -96,7 +96,7 @@ maybe you create your own country file, which would be great. But try to impleme
 organizes your ability to access a countries polygon data.
 """
 
-mm = MongoManager(db="candy_store")
+mm = MongoManager(db="candies")
 
 """
   _      ____   _____          _        __  __ ______ _______ _    _  ____  _____   _____
@@ -178,7 +178,12 @@ def update_candy_info(candy_id: int):
     """
     Update information about an existing candy.
     """
-    pass
+    mm.setCollection("candies")
+    mm.update(
+        query={"id": candy_id},
+        update={"$set": updated_info}
+    )
+    return {"message": "Candy information updated successfully."}
 
 
 @app.delete("/candies/{candy_id}")
@@ -186,7 +191,11 @@ def delete_candy(candy_id: int):
     """
     Remove a candy from the store's inventory.
     """
-    pass
+    mm.setCollection("candies")
+    mm.delete(
+        query={"id": candy_id}
+    )
+    return {"message": "Candy deleted successfully."}
 
 
 @app.get("/categories")
@@ -194,7 +203,9 @@ def list_categories():
     """
     Get a list of candy categories (e.g., chocolates, gummies, hard candies).
     """
-    pass
+    mm.setCollection("candies")
+    categories = mm.distinct("category")
+    return categories
 
 
 @app.get("/promotions")
@@ -212,7 +223,69 @@ def store_information():
     """
     pass
 
+@app.get("/candies/description/{keyword}")
+def candies_by_description(keyword: str):
+    """
+    Search for candies based on a keyword in the description.
+    """
+    mm.setCollection("candies")
+    result = mm.get(
+        query={"desc": {"$regex": keyword, "$options": "i"}},
+        filter={"_id": 0, "name": 1, "price": 1, "category": 1},
+    )
+    return result
 
+@app.get("/candies/name/{keyword}")
+def candies_by_name(keyword: str):
+    """
+    Search for candies based on a keyword in the name.
+    """
+    mm.setCollection("candies")
+    result = mm.get(
+        query={"name": {"$regex": keyword, "$options": "i"}},
+        filter={"_id": 0, "name": 1, "price": 1, "category": 1},
+    )
+    return result
+
+@app.get("/candies/price")
+def candies_by_price_range(min_price: float = Query(None), max_price: float = Query(None)):
+    """
+    Search for candies within a specific price range.
+    """
+    mm.setCollection("candies")
+    query = {}
+    if min_price is not None:
+        query["price"] = {"$gte": min_price}
+    if max_price is not None:
+        query["price"] = {"$lte": max_price}
+    result = mm.get(
+        query=query,
+        filter={"_id": 0, "name": 1, "price": 1, "category": 1},
+    )
+    return result
+
+@app.get("/candies/image/{id}")
+def get_candy_image(id: str):
+    """
+    Get the image URL of a specific candy by its ID.
+    """
+    mm.setCollection("candies")
+    result = mm.get(
+        query={"id": id}, filter={"_id": 0, "img_url": 1}
+    )
+    return result['img_url']
+
+@app.put("/candies/{candy_id}")
+def update_candy_price(candy_id: str, new_price: float):
+    """
+    Update the price of an existing candy.
+    """
+    mm.setCollection("candies")
+    mm.update(
+        query={"id": candy_id},
+        update={"$set": {"price": new_price}}
+    )
+    return {"message": "Candy price updated successfully."}    
 """
 This main block gets run when you invoke this file. How do you invoke this file?
 
@@ -229,10 +302,5 @@ Note:
 """
 if __name__ == "__main__":
     uvicorn.run(
-        "api:app", host="68.183.50.168", port=8080, log_level="debug", reload=True
+        "api:app", host="68.183.50.168", port=8084, log_level="debug", reload=True
     )
-"""                                   ^
-                                      |
-CHANGE DOMAIN NAME                    |              
-
-"""
