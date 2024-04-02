@@ -13,6 +13,9 @@ const BottomBar = () => {
     if (tabName === 'search') {
       navigation.navigate('Search'); // Navigate to the Search screen
     }
+    if (tabName === 'home') {
+      navigation.navigate('Home');
+    }
   };
 
   return (

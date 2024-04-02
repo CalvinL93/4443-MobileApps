@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import BottomBar from '../bottomMenu'; // Import the BottomBar component
+
 
 const SearchScreen = () => {
   const [categories, setCategories] = useState([]);
@@ -56,6 +58,8 @@ const SearchScreen = () => {
           ))}
         </Picker>
       </View>
+
+            <BottomBar />
     </View>
   );
 };
