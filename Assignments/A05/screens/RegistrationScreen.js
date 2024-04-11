@@ -9,16 +9,33 @@ const RegistrationScreen = () => {
   const [password, setPassword] = useState('');
   const [verifyPassword, setVerifyPassword] = useState('');
 
-  const handleRegister = () => {
-    // Implement registration logic here
-    console.log('Registration data:', {
-      firstName,
-      lastName,
-      email,
-      username,
-      password,
-      verifyPassword,
-    });
+  const [registrationError, setRegistrationError] = useState(null);
+
+  const handleRegister = async () => {
+    try {
+      const response = await fetch('http://68.183.50.168:8084/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          firstName: firstName, // Changed to match server's expected field names
+          lastName: lastName, // Changed to match server's expected field names
+          username: username,
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Registration failed with status ${response.status}`);
+      }
+
+      console.log('Registration successful');
+    } catch (error) {
+      setRegistrationError(error.message);
+      console.error('Error registering user:', error.message);
+    }
   };
 
   return (
@@ -70,6 +87,8 @@ const RegistrationScreen = () => {
       <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
+
+      {registrationError && <Text style={styles.errorText}>{registrationError}</Text>}
     </View>
   );
 };
@@ -109,6 +128,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  errorText: {
+    color: 'red',
+    marginTop: 10,
   },
 });
 

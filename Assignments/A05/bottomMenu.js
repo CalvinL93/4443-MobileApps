@@ -16,6 +16,9 @@ const BottomBar = () => {
     if (tabName === 'home') {
       navigation.navigate('Home');
     }
+    if (tabName === 'map') {
+      navigation.navigate('Map');
+    }
   };
 
   return (
@@ -25,6 +28,14 @@ const BottomBar = () => {
         onPress={() => handleTabPress('home')}
       >
         <Ionicons name="home" size={24} color={selectedTab === 'home' ? '#007AFF' : '#888'} />
+      </TouchableOpacity>
+
+      {/* Add the new icon and handle its press */}
+      <TouchableOpacity
+        style={[styles.tab, selectedTab === 'map' && styles.selectedTab]}
+        onPress={() => handleTabPress('map')}
+      >
+        <Ionicons name="map" size={24} color={selectedTab === 'map' ? '#007AFF' : '#888'} />
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -65,7 +76,6 @@ const styles = StyleSheet.create({
     borderTopColor: '#ccc',
     paddingHorizontal: 20,
     paddingVertical: 10,
-    // Adjust other styles as needed
   },
   tab: {
     alignItems: 'center',
