@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native'; // Import useNavigation hook
 
 const RegistrationScreen = () => {
   const [firstName, setFirstName] = useState('');
@@ -9,7 +10,7 @@ const RegistrationScreen = () => {
   const [password, setPassword] = useState('');
   const [verifyPassword, setVerifyPassword] = useState('');
 
-  const [registrationError, setRegistrationError] = useState(null);
+  const navigation = useNavigation(); // Initialize navigation
 
   const handleRegister = async () => {
     try {
@@ -20,8 +21,8 @@ const RegistrationScreen = () => {
         },
         body: JSON.stringify({
           email: email,
-          firstName: firstName, // Changed to match server's expected field names
-          lastName: lastName, // Changed to match server's expected field names
+          firstName: firstName,
+          lastName: lastName,
           username: username,
           password: password,
         }),
@@ -31,9 +32,10 @@ const RegistrationScreen = () => {
         throw new Error(`Registration failed with status ${response.status}`);
       }
 
-      console.log('Registration successful');
+      // Registration successful
+      Alert.alert('Success', 'Registration successful', [{ text: 'OK', onPress: () => navigation.navigate('Home') }]);
     } catch (error) {
-      setRegistrationError(error.message);
+      Alert.alert('Error', `Registration failed: ${error.message}`);
       console.error('Error registering user:', error.message);
     }
   };
@@ -88,7 +90,7 @@ const RegistrationScreen = () => {
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
 
-      {registrationError && <Text style={styles.errorText}>{registrationError}</Text>}
+      
     </View>
   );
 };

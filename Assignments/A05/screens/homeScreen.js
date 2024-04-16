@@ -1,11 +1,13 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Animated, Easing, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { useAuth } from '../AuthContext';
 import BottomBar from '../bottomMenu'; // Import the BottomBar component
 
 export default function HomePage({ navigation }) {
+  const { user, logout } = useAuth();
+
   const spinValue = useMemo(() => new Animated.Value(0), []);
 
   useEffect(() => {
@@ -37,11 +39,24 @@ export default function HomePage({ navigation }) {
   };
 
   const handleLogin = () => {
-    navigation.navigate('Login');
-  }
+    navigation.navigate('Login');  
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <View style={styles.container}>
+      {user && (
+        <View style={styles.loggedInContainer}>
+          <Text style={styles.loggedInText}>Logged in as {user}</Text>
+          <TouchableOpacity onPress={handleLogout}>
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <Animated.Image
         source={require('../assets/spinner.png')}
         style={[styles.image, { transform: [{ rotate: spin }] }]}
@@ -58,10 +73,12 @@ export default function HomePage({ navigation }) {
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
 
+        
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Ionicons name="log-in" size={32} color="black" />
           <Text style={styles.buttonText}>Log In</Text>
         </TouchableOpacity>
+      
       </View>
 
       <BottomBar />
@@ -77,6 +94,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  loggedInContainer: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  loggedInText: {
+    marginRight: 10,
+  },
+  logoutText: {
+    color: 'blue',
+    textDecorationLine: 'underline',
   },
   image: {
     width: 200,
@@ -99,6 +130,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     marginTop: 5,
-    textAlign: 'center', // Add textAlign to center the text
+    textAlign: 'center',
   },
 });

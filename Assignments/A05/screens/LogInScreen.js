@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import axios from 'axios';
+import { useAuth } from '../AuthContext';
+import { useNavigation } from '@react-navigation/native'; // Import useNavigation hook
 
 const LoginScreen = () => {
+  const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const navigation = useNavigation(); // Initialize navigation
 
   const handleLogin = async () => {
     try {
@@ -15,7 +19,8 @@ const LoginScreen = () => {
   
       if (response.data.message === "Login successful") {
         // Handle successful login response
-        Alert.alert('Success', 'Login successful');
+        login(username);
+        Alert.alert('Success', 'Login successful', [{ text: 'OK', onPress: () => navigation.navigate('Home') }]);
         console.log('Login successful:', response.data);
       } else {
         // Handle failed login response
