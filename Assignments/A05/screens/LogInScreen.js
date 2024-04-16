@@ -17,20 +17,24 @@ const LoginScreen = () => {
         // Handle successful login response
         Alert.alert('Success', 'Login successful');
         console.log('Login successful:', response.data);
-      } else if ("An error occurred: 401: Incorrect password") {
-        Alert.alert('Login Failed', 'Incorrect Password');
-        console.log('Login failed:', response.data);
-      } else if ("An error occurred: 404: User not found") {
-        Alert.alert('Login Failed', 'Incorrect username');
-        console.log('Login failed:', response.data);
       } else {
-        Alert.alert('Login Failed', 'Unknown Error');
+        // Handle failed login response
+        Alert.alert('Login Failed', response.data.message);
         console.log('Login failed:', response.data);
       }
   
     } catch (error) {
       // Handle login error
-      Alert.alert('Error', error.response.data.message);
+      if (error.response.status === 401) {
+        // Incorrect password
+        Alert.alert('Login Failed', 'Incorrect Password');
+      } else if (error.response.status === 404) {
+        // User not found
+        Alert.alert('Login Failed', 'Incorrect Username');
+      } else {
+        // Other errors
+        Alert.alert('Error', error.response.data.message);
+      }
       console.error('Login failed:', error.response.data.message);
     }
   };
