@@ -10,14 +10,20 @@ const BottomBar = () => {
   const handleTabPress = (tabName) => {
     setSelectedTab(tabName);
     // Add logic to handle tab presses if needed
-    if (tabName === 'search') {
-      navigation.navigate('Search'); // Navigate to the Search screen
+    if (tabName === 'images') {
+      navigation.navigate('Images');
     }
     if (tabName === 'home') {
       navigation.navigate('Home');
     }
     if (tabName === 'map') {
       navigation.navigate('Map');
+    }
+    if (tabName === 'camera') {
+      navigation.navigate('Camera');
+    }
+    if (tabName === 'chat') {
+      navigation.navigate('Chat');
     }
   };
 
@@ -30,19 +36,20 @@ const BottomBar = () => {
         <Ionicons name="home" size={24} color={selectedTab === 'home' ? '#007AFF' : '#888'} />
       </TouchableOpacity>
 
-      {/* Add the new icon and handle its press */}
+      {/* Change the map icon to represent a camera */}
       <TouchableOpacity
-        style={[styles.tab, selectedTab === 'map' && styles.selectedTab]}
-        onPress={() => handleTabPress('map')}
+        style={[styles.tab, selectedTab === 'camera' && styles.selectedTab]}
+        onPress={() => handleTabPress('camera')}
       >
-        <Ionicons name="map" size={24} color={selectedTab === 'map' ? '#007AFF' : '#888'} />
+        <Ionicons name="camera" size={24} color={selectedTab === 'camera' ? '#007AFF' : '#888'} />
       </TouchableOpacity>
 
+      {/* Replace the images icon with an icon for chat */}
       <TouchableOpacity
-        style={[styles.tab, selectedTab === 'profile' && styles.selectedTab]}
-        onPress={() => handleTabPress('profile')}
+        style={[styles.tab, selectedTab === 'chat' && styles.selectedTab]}
+        onPress={() => handleTabPress('chat')}
       >
-        <Ionicons name="person" size={24} color={selectedTab === 'profile' ? '#007AFF' : '#888'} />
+        <Ionicons name="chatbubble" size={24} color={selectedTab === 'chat' ? '#007AFF' : '#888'} />
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -53,10 +60,10 @@ const BottomBar = () => {
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.tab, selectedTab === 'search' && styles.selectedTab]}
-        onPress={() => handleTabPress('search')}
+        style={[styles.tab, selectedTab === 'map' && styles.selectedTab]}
+        onPress={() => handleTabPress('map')}
       >
-        <Ionicons name="search" size={24} color={selectedTab === 'search' ? '#007AFF' : '#888'} />
+        <Ionicons name="map" size={24} color={selectedTab === 'map' ? '#007AFF' : '#888'} />
       </TouchableOpacity>
     </View>
   );

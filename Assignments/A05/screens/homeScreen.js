@@ -34,6 +34,10 @@ export default function HomePage({ navigation }) {
     outputRange: ['0deg', '360deg'],
   });
 
+  const handleSearch = () => {
+    navigation.navigate('Search'); // Navigate to the Search screen
+  };
+
   const handleSignUp = () => {
     navigation.navigate('Registration'); // Navigate to the Registration screen
   };
@@ -63,9 +67,9 @@ export default function HomePage({ navigation }) {
       />
 
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.button}>
-          <Ionicons name="home" size={32} color="black" />
-          <Text style={styles.buttonText}>Home</Text>
+        <TouchableOpacity style={styles.button} onPress={handleSearch}>
+          <Ionicons name="search" size={32} color="black" />
+          <Text style={styles.buttonText}>Search</Text> 
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={handleSignUp}>
