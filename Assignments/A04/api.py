@@ -1,13 +1,18 @@
 # Libraries for FastAPI
-from fastapi import FastAPI, Query, Path
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, Query, Path, HTTPException, File, UploadFile
+from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from hashlib import sha256
+from bson.json_util import dumps
 import uvicorn
 import json
 from pymongo import MongoClient
 from typing import List
 from pydantic import BaseModel
 from mongoManager import MongoManager
+import logging
+from pathlib import Path
+
 
 # Builtin libraries
 import os
@@ -96,7 +101,7 @@ maybe you create your own country file, which would be great. But try to impleme
 organizes your ability to access a countries polygon data.
 """
 
-mm = MongoManager(db="candies")
+mm = MongoManager(db="candy_store")
 
 """
   _      ____   _____          _        __  __ ______ _______ _    _  ____  _____   _____
@@ -160,7 +165,8 @@ def get_candy_by_id(id: str):
     """
     mm.setCollection("candies")
     result = mm.get(
-        query={"id": id}, filter={"_id": 0, "name": 1, "price": 1, "category": 1}
+        query={"id": id},
+        filter={"_id": 0, "id": 1, "name": 1, "prod_url": 1, "img_url": 1, "price": 1, "desc": 1}
     )
     return result
 
@@ -174,7 +180,7 @@ def add_new_candy():
 
 
 @app.put("/candies/{candy_id}")
-def update_candy_info(candy_id: int):
+def update_candy_info(candy_id: int, updated_info: str):
     """
     Update information about an existing candy.
     """
@@ -203,9 +209,12 @@ def list_categories():
     """
     Get a list of candy categories (e.g., chocolates, gummies, hard candies).
     """
-    mm.setCollection("candies")
-    categories = mm.distinct("category")
-    return categories
+    try:
+        mm.setCollection("candies")
+        categories = mm.distinct("category")
+        return categories
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.get("/promotions")
@@ -243,7 +252,7 @@ def candies_by_name(keyword: str):
     mm.setCollection("candies")
     result = mm.get(
         query={"name": {"$regex": keyword, "$options": "i"}},
-        filter={"_id": 0, "name": 1, "price": 1, "category": 1},
+        filter={"_id": 0, "name": 1, "price": 1, "desc": 1},
     )
     return result
 
@@ -300,6 +309,256 @@ Note:
     The left side (api) is the name of this file (api.py without the extension)
     The right side (app) is the bearingiable name of the FastApi instance declared at the top of the file.
 """
+# app = FastAPI()
+# Initialize MongoDB client
+client = MongoClient('mongodb://68.183.50.168:27017/')
+db = client['candy_store']
+users_collection = db['users']
+
+class User(BaseModel):
+    email: str
+    firstName: str
+    lastName: str
+    username: str
+    password: str
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+@app.post("/register")
+def register_user(user: User):
+    try:
+        # Check if the username or email already exists
+        if users_collection.find_one({"$or": [{"email": user.email}, {"username": user.username}]}):
+            return {"message": "User with this email or username already exists"}
+
+        # Hash the password
+        hashed_password = sha256(user.password.encode()).hexdigest()
+
+        # Create a new user document
+        user_data = {
+            "email": user.email,
+            "first_name": user.firstName,
+            "last_name": user.lastName,
+            "username": user.username,
+            "password": hashed_password
+        }
+
+        try:
+            users_collection.insert_one(user_data)
+            return {"message": "User registered successfully"}
+        except Exception as e:
+            return {"message": f"An error occurred while registering user: {str(e)}"}
+
+    except Exception as e:
+        return {"message": f"An error occurred: {str(e)}"}
+    
+@app.post("/registerTestUsers") 
+def register_test_users():
+    user_data = {
+        "email": "test1@test.com",
+            "first_name": "Bob",
+            "last_name": "Bobson",
+            "username": "Bob",
+            "password": "password"
+    }   
+    users_collection.insert_one(user_data)
+
+    user_data = {
+        "email": "test2@test.com",
+            "first_name": "David",
+            "last_name": "Davidson",
+            "username": "Dave",
+            "password": "password"
+    }   
+    users_collection.insert_one(user_data)
+
+    user_data = {
+        "email": "test3@test.com",
+            "first_name": "John",
+            "last_name": "Johnson",
+            "username": "John",
+            "password": "password"
+    }   
+    users_collection.insert_one(user_data)
+
+    user_data = {
+        "email": "test4@test.com",
+            "first_name": "Tom",
+            "last_name": "Tomson",
+            "username": "Tom",
+            "password": "password"
+    }   
+    users_collection.insert_one(user_data)
+
+    user_data = {
+        "email": "test5@test.com",
+            "first_name": "William",
+            "last_name": "Williamson",
+            "username": "Will",
+            "password": "password"
+    }   
+    users_collection.insert_one(user_data)
+
+@app.get("/users")
+def get_all_users():
+    try:
+        # Retrieve all users from the database
+        all_users = list(users_collection.find())
+        return all_users
+    except Exception as e:
+        logging.error(f"An error occurred while retrieving users: {str(e)}")
+        return {"message": "An error occurred while retrieving users. Please check the server logs for more details."}
+
+@app.get("/usernames")
+def get_usernames():
+    try:
+        usernames = [user['username'] for user in users_collection.find({}, {"username": 1})]
+        return {"usernames": usernames}
+    except Exception as e:
+        return {"message": f"An error occurred: {str(e)}"}
+
+@app.post("/login")
+def login_user(user_login: UserLogin):
+    try:
+        # Retrieve user from the database by username
+        user = users_collection.find_one({"username": user_login.username})
+        if user:
+            # Check if the provided password matches the stored password
+            hashed_password = sha256(user_login.password.encode()).hexdigest()
+            if hashed_password == user['password']:
+                return {"message": "Login successful"}
+            else:
+                raise HTTPException(status_code=401, detail="Incorrect password")
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+    except Exception as e:
+        return {"message": f"An error occurred: {str(e)}"}
+
+users_locations = db['locations']
+
+class Location(BaseModel):
+    username: str
+    latitude: float
+    longitude: float
+
+@app.post("/setLocation")
+def set_locations(location: Location):
+    try:
+        # Insert the provided location data into the database
+        location_data = {
+            "username": location.username,
+            "latitude": location.latitude,
+            "longitude": location.longitude
+        }
+        users_locations.insert_one(location_data)
+        return {"message": "Location set successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+    
+@app.post("/setTestLocations")
+def set_test_locations():
+    location_data = {
+            "username": "Bob",
+            "latitude": 37.415594,
+            "longitude": -122.056541
+        }
+    users_locations.insert_one(location_data)
+
+    location_data = {
+            "username": "Dave",
+            "latitude": 37.441744,
+            "longitude": -122.083798
+        }
+    users_locations.insert_one(location_data)
+
+    location_data = {
+            "username": "John",
+            "latitude": 37.419636,
+            "longitude": -122.096663
+        }
+    users_locations.insert_one(location_data)
+
+    location_data = {
+            "username": "Tom",
+            "latitude": 37.449190,
+            "longitude": -122.108590
+        }
+    users_locations.insert_one(location_data)
+
+    location_data = {
+            "username": "Will",
+            "latitude": 37.406131,
+            "longitude": -122.058909
+        }
+    users_locations.insert_one(location_data)
+
+
+@app.get("/locations")
+def get_locations():
+    try:
+        # Retrieve all locations from the locations collection
+        all_locations = list(users_locations.find())
+
+        # For each location, find the corresponding user and include their first and last names
+        locations_with_names = []
+        for location in all_locations:
+            user = users_collection.find_one({"username": location["username"]})
+            if user:
+                location_with_name = {
+                    "location": {
+                        "latitude": location.get("latitude", ""),
+                        "longitude": location.get("longitude", "")
+                    },
+                    "user": {
+                        "username": location["username"],
+                        "firstName": user.get("first_name", ""),
+                        "lastName": user.get("last_name", "")
+                    }
+                }
+                locations_with_names.append(location_with_name)
+
+        return dumps(locations_with_names)  # Convert to JSON string
+    except Exception as e:
+        return {"message": f"An error occurred: {str(e)}"}
+    
+UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR.mkdir(exist_ok=True)
+
+@app.post("/upload")
+async def upload_file(image: UploadFile = File(...)):
+    try:
+        # Save the uploaded file to the server
+        contents = await image.read()
+        with open(UPLOAD_DIR / image.filename, "wb") as f:
+            f.write(contents)
+        return {"filename": image.filename, "message": "File uploaded successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+@app.get("/images")
+def list_images():
+    try:
+        # List all files in the upload directory
+        images = [str(file) for file in UPLOAD_DIR.glob("*")]
+        return {"images": images}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+@app.get("/images/{filename}")
+async def get_image(filename: str):
+    try:
+        # Check if the requested file exists
+        file_path = UPLOAD_DIR / filename
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        # Return the file as a response
+        return FileResponse(str(file_path))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+    
 if __name__ == "__main__":
     uvicorn.run(
         "api:app", host="68.183.50.168", port=8084, log_level="debug", reload=True

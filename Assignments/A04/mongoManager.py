@@ -233,7 +233,19 @@ class MongoManager:
     def delete(self, query):
         # Implement the logic to delete data based on the query
         pass
+    
+    def distinct(self, field):
+        """
+        Retrieve distinct values for a specific field from the collection.
 
+        :param field: The field for which distinct values are to be retrieved.
+        :return: A list of distinct values.
+        """
+        if self.collection is None:
+            raise ValueError("Collection not set.")
+
+        distinct_values = self.collection.distinct(field)
+        return distinct_values
 
 if __name__ == "__main__":
 
