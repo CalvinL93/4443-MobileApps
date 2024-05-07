@@ -12,20 +12,22 @@ const MapScreen = () => {
     const fetchLocations = async () => {
       try {
         const response = await fetch('http://68.183.50.168:8084/locations');
-        const dataString = await response.text(); // Get the response as a string
-        const data = JSON.parse(dataString); // Parse the JSON string into a JavaScript object
-        console.log('Data:', data); // Log the entire data array
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch locations');
+        }
+        
+        const data = await response.json(); 
+        console.log('Data:', data); 
+        
         if (Array.isArray(data)) {
           // Transform data structure to match locations state
-          const transformedData = data.map(item => {
-            console.log('Item:', item); // Log each individual item
-            return {
-              latitude: item?.location?.latitude || 0, // Default to 0 if latitude is undefined
-              longitude: item?.location?.longitude || 0, // Default to 0 if longitude is undefined
-              user: item?.user || {}, // Default to empty object if user is undefined
-            };
-          });
-          setLocations(transformedData); // Save transformed data into locations state
+          const transformedData = data.map(item => ({
+            latitude: item?.location?.latitude || 0, 
+            longitude: item?.location?.longitude || 0, 
+            user: item?.user || {},
+          }));
+          setLocations(transformedData); 
           fitMarkersInMap(transformedData);
         } else {
           console.error('Data is not an array:', data);
@@ -101,7 +103,7 @@ const MapScreen = () => {
             longitude: currentLocation.longitude,
           }}
           title="Your Location"
-          pinColor="blue" // Optional: Customize pin color
+          pinColor="blue"
         />
       </MapView>
       <TouchableOpacity style={styles.button}>
